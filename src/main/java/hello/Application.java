@@ -40,17 +40,36 @@ public class Application {
 	@Bean
 	ApplicationRunner runner() {
 		return args -> {
+			//Example of circular references in an object.
 			CircularObject circularObject = new CircularObject();
 			circularObject.reference = circularObject;
+
+			//Serializing this object will throw an exception
 			DataSerializer.writeObject(circularObject, new DataOutputStream(new ByteArrayOutputStream()));
 		};
 	}
 
+	/**
+	 * Configure spring to use our custom MappingPdxSerializer
+	 */
 	@Bean
 	MappingPdxSerializer myCustomMappingPdxSerializer() {
         	return new DefensiveMappingPdxSerializer();
+
+		//Default serializer calls StackOverFlowError
+		//return MappingPdxSerializer.newMappingPdxSerializer();
 	}
 
+	/**
+	 *
+	 * This serializer extends Spring Data GemFires MappingPdxSerializer. It adds the
+	 * capability to detect a cycle in the object being serialized and throw an
+	 * exception if a cycle is detected. This replaces a StackOverFlowError with a
+	 * more informative IllegalStateException.
+	 *
+	 * This serializer probably comes with a small peformance penalty, because it
+	 * updates a set for every object that is serialized.
+	 */
 	private static class DefensiveMappingPdxSerializer extends MappingPdxSerializer {
 		ThreadLocal<Set<Object>> objectsInStack = ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
 
