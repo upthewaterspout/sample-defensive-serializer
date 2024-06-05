@@ -43,7 +43,6 @@ public class Application {
 			CircularObject circularObject = new CircularObject();
 			circularObject.reference = circularObject;
 			DataSerializer.writeObject(circularObject, new DataOutputStream(new ByteArrayOutputStream()));
-			DataSerializer.writeObject(circularObject, new DataOutputStream(new ByteArrayOutputStream()));
 		};
 	}
 
